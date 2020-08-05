@@ -127,6 +127,8 @@ def main():
             print("train_loss: {:08.6f}".format(validation_loss_value / (args.validation_size / args.batch_size)))
         torch.save({'deeplab_state_dict': model_deeplab.state_dict()}, osp.join(args.checkpoint_dir, 'AE.pth'))
 
+if __name__ == "__main__":
+    main()
                 
 
                 
