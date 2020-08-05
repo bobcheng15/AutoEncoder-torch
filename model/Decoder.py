@@ -10,7 +10,7 @@ class Decoder(nn.Module):
         self.dconv2 = nn.ConvTranspose2d(64, 32, 4, 2, padding=1)
         self.bn2   = nn.BatchNorm2d(32)
         self.dconv3 = nn.ConvTranspose2d(32, 4, 8, 4, padding=0)
-        self.bn3   = nn.BatchNorm2d(1)
+        self.bn3   = nn.BatchNorm2d(4)
         self.relu  = nn.ReLU()
     
     def forward(self, x):
@@ -22,6 +22,7 @@ class Decoder(nn.Module):
         x = self.relu(x)
         x = self.dconv3(x)
         x = self.bn3(x)
-        x = self.relu(x) 
+        x = self.relu(x)
+        return x 
 
 
