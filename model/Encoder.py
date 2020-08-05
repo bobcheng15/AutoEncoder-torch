@@ -5,7 +5,7 @@ import torch.nn as nn
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
-        self.conv1 = nn.Conv2d(None, 32, 8, 4, padding=0)
+        self.conv1 = nn.Conv2d(4, 32, 8, 4, padding=0)
         self.bn1   = nn.BatchNorm2d(32)
         self.conv2 = nn.Conv2d(32, 64, 4, 2, padding=1)        
         self.bn2   = nn.BatchNorm2d(64)

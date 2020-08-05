@@ -35,6 +35,7 @@ def get_arg():
                             default=5, help="number of epoch")
     parser.add_argument("--learning-rate", type=float,
                             default=0.001, help="learning rate of the optimizer")
+    return parser.parse_args()
     
 
 
