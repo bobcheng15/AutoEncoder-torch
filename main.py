@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torchvision.utils import save_image
 
 
 def get_arg():
@@ -133,6 +134,8 @@ def main():
                 latent = model_encoder(image)
                 img_recon = model_decoder(latent)
                 img_recon = F.interpolate(img_recon, size=image.shape[2:], mode='bilinear', align_corners=True) 
+                img_1 = img_recon[0]
+                save_image(img_1, 'fake.png')
                 image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
                 loss = l2loss(img_recon, image)
                 validation_loss_value += loss.data.cpu().numpy() / args.batch_size
