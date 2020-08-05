@@ -23,6 +23,7 @@ class Decoder(nn.Module):
         x = self.dconv3(x)
         x = self.bn3(x)
         x = self.relu(x)
+        x = torch.clamp(x, min=0.0, max=1.0)
         return x 
 
 

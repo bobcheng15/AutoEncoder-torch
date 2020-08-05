@@ -56,7 +56,7 @@ def get_data(index):
             print("loading {:d}-th img".format(i))
         path = directory + '/{:06d}.png'.format(i)
         img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
         img = img / 255
         batch_img.append(img)
@@ -70,7 +70,7 @@ def get_data(index):
             print("loading {:d}-th img".format(i))
         path = directory + '/{:06d}.png'.format(i)
         img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
         img = img / 255
         batch_img.append(img)
@@ -107,7 +107,7 @@ def main():
     l2loss = nn.MSELoss()
     
     #load data
-    for i in range(1, 210002, 30000):
+    for i in range(1, 360002, 30000):
         train_data, valid_data = get_data(i)
         for e in range(1, args.epoch + 1):
             train_loss_value = 0
@@ -133,9 +133,9 @@ def main():
                 image = Variable(torch.tensor(valid_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
                 latent = model_encoder(image)
                 img_recon = model_decoder(latent)
+                img_1 = img_recon[0][0]
                 img_recon = F.interpolate(img_recon, size=image.shape[2:], mode='bilinear', align_corners=True) 
-                img_1 = img_recon[0]
-                save_image(img_1, 'fake.png')
+                save_image(img_1, 'fake.jpg')
                 image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
                 loss = l2loss(img_recon, image)
                 validation_loss_value += loss.data.cpu().numpy() / args.batch_size
