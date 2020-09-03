@@ -55,7 +55,7 @@ def process_frame(frame, shape=(84, 84)):
 def get_data(index):
     train_img = [] # (4-d tensor) shape : size, w, h, 3
     valid_img = []
-    batch_img = [] #(4-d tensor) shape: 4, w, h
+    #batch_img = [] #(4-d tensor) shape: 4, w, h
     directory = args.data_dir
     train_st, train_ed = index, index + args.train_size
     valid_st, valid_ed = train_ed + 1, train_ed + args.validation_size
@@ -68,10 +68,7 @@ def get_data(index):
         #img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
         img = process_frame(img)
         img = img / 255
-        batch_img.append(img)
-        if len(batch_img) == 4:
-            train_img.append(np.array(batch_img, dtype=np.float32))
-            batch_img = []
+        train_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
     train_img = np.array(train_img, dtype=np.float32)
     #train_img = np.squeeze(train_img, axis=4)
     print(train_img.shape)
@@ -82,10 +79,7 @@ def get_data(index):
         img = cv2.imread(path)
         img = process_frame(img)
         img = img / 255
-        batch_img.append(img)
-        if len(batch_img) == 4:
-            valid_img.append(np.array(batch_img, dtype=np.float32))
-            batch_img = []
+        valid_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
     valid_img = np.array(valid_img, dtype=np.float32)
     #valid_img = np.squeeze(valid_img, axis=4)
     print(valid_img.shape)  
@@ -125,7 +119,7 @@ def main():
             for j in range(0, int(args.train_size/4), args.batch_size):
                 optimizer_decoder.zero_grad()
                 optimizer_decoder.zero_grad()
-                image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
+                image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :])).cuda(args.gpu)
                 latent = model_encoder(image)
                 img_recon = model_decoder(latent)
                 img_recon = F.interpolate(img_recon, size=image.shape[2:], mode='bilinear', align_corners=True) 
@@ -140,7 +134,7 @@ def main():
             for j in range(0,int(args.validation_size/4), args.batch_size):
                 model_encoder.eval()
                 model_decoder.eval() 
-                image = Variable(torch.tensor(valid_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
+                image = Variable(torch.tensor(valid_data[j: j + args.batch_size, :, :])).cuda(args.gpu)
                 latent = model_encoder(image)
                 img_recon = model_decoder(latent)
                 img_1 = img_recon[0][0]
@@ -152,7 +146,8 @@ def main():
             model_encoder.train()
             model_decoder.train()
             print("train_loss: {:08.6f}".format(validation_loss_value / (args.validation_size / args.batch_size)))
-        torch.save({'encoder_state_dict': model_encoder.state_dict()}, osp.join(args.checkpoint_dir, 'AE.pth'))
+        torch.save({'encoder_state_dict': model_encoder.state_dict()}, osp.join(args.checkpoint_dir, 'AE_encoder.pth'))
+        torch.save({'decoder_state_dict': model_decoder.state_dict()}, osp.join(args.checkpoint_dir, 'AE_decoder.pth'))
 
 if __name__ == "__main__":
     main()
