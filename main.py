@@ -42,7 +42,15 @@ def get_arg():
                             default=0, help="id of the gpu to run the program on")
     return parser.parse_args()
     
-
+def process_frame(frame, shape=(84, 84)):
+    frame = frame.astype(np.uint8)  # cv2 requires np.uint8, other dtypes will not work
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+    frame = frame[34:34+160, :160]  # crop image
+    #frame = cv2.resize(frame, shape, interpolation=cv2.INTER_NEAREST)
+    #frame = frame.reshape((*shape, 1))
+    cv2.imwrite('gray.png', frame)
+    #print(frame.shape)
+    return frame
 
 def get_data(index):
     train_img = [] # (4-d tensor) shape : size, w, h, 3
@@ -56,28 +64,30 @@ def get_data(index):
             print("loading {:d}-th img".format(i))
         path = directory + '/{:06d}.png'.format(i)
         img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
+        #img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        #img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
+        img = process_frame(img)
         img = img / 255
         batch_img.append(img)
         if len(batch_img) == 4:
             train_img.append(np.array(batch_img, dtype=np.float32))
             batch_img = []
     train_img = np.array(train_img, dtype=np.float32)
+    #train_img = np.squeeze(train_img, axis=4)
     print(train_img.shape)
     for i in range(valid_st, valid_ed+1):
         if i % 1000 == 0:
             print("loading {:d}-th img".format(i))
         path = directory + '/{:06d}.png'.format(i)
         img = cv2.imread(path)
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
+        img = process_frame(img)
         img = img / 255
         batch_img.append(img)
         if len(batch_img) == 4:
             valid_img.append(np.array(batch_img, dtype=np.float32))
             batch_img = []
     valid_img = np.array(valid_img, dtype=np.float32)
+    #valid_img = np.squeeze(valid_img, axis=4)
     print(valid_img.shape)  
     return train_img, valid_img
 
@@ -94,14 +104,14 @@ def main():
     model_encoder = Encoder()
     model_encoder.train()
     model_encoder.cuda(args.gpu)
-    optimizer_encoder = optim.Adam(model_encoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99))
+    optimizer_encoder = optim.Adam(model_encoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99), weight_decay=1e-5)
     optimizer_encoder.zero_grad()
 
     #create model: Decoder
     model_decoder = Decoder()
     model_decoder.train()
     model_decoder.cuda(args.gpu)
-    optimizer_decoder = optim.Adam(model_decoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99))
+    optimizer_decoder = optim.Adam(model_decoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99), weight_decay=1e-5)
     optimizer_decoder.zero_grad()
     
     l2loss = nn.MSELoss()
@@ -135,7 +145,7 @@ def main():
                 img_recon = model_decoder(latent)
                 img_1 = img_recon[0][0]
                 img_recon = F.interpolate(img_recon, size=image.shape[2:], mode='bilinear', align_corners=True) 
-                save_image(img_1, 'fake.jpg')
+                save_image(img_1, 'fake.png')
                 image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
                 loss = l2loss(img_recon, image)
                 validation_loss_value += loss.data.cpu().numpy() / args.batch_size
