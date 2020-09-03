@@ -98,14 +98,14 @@ def main():
     model_encoder = Encoder()
     model_encoder.train()
     model_encoder.cuda(args.gpu)
-    optimizer_encoder = optim.Adam(model_encoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99), weight_decay=1e-5)
+    optimizer_encoder = optim.Adam(model_encoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99))
     optimizer_encoder.zero_grad()
 
     #create model: Decoder
     model_decoder = Decoder()
     model_decoder.train()
     model_decoder.cuda(args.gpu)
-    optimizer_decoder = optim.Adam(model_decoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99), weight_decay=1e-5)
+    optimizer_decoder = optim.Adam(model_decoder.parameters(), lr=args.learning_rate, betas=(0.95, 0.99))
     optimizer_decoder.zero_grad()
     
     l2loss = nn.MSELoss()
