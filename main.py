@@ -46,8 +46,8 @@ def process_frame(frame, shape=(84, 84)):
     frame = frame.astype(np.uint8)  # cv2 requires np.uint8, other dtypes will not work
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     frame = frame[34:34+160, :160]  # crop image
-    #frame = cv2.resize(frame, shape, interpolation=cv2.INTER_NEAREST)
-    #frame = frame.reshape((*shape, 1))
+    frame = cv2.resize(frame, shape, interpolation=cv2.INTER_NEAREST)
+    frame = frame.reshape((*shape, 1))
     cv2.imwrite('gray.png', frame)
     #print(frame.shape)
     return frame
@@ -55,7 +55,7 @@ def process_frame(frame, shape=(84, 84)):
 def get_data(index):
     train_img = [] # (4-d tensor) shape : size, w, h, 3
     valid_img = []
-    #batch_img = [] #(4-d tensor) shape: 4, w, h
+    batch_img = [] #(4-d tensor) shape: 4, w, h
     directory = args.data_dir
     train_st, train_ed = index, index + args.train_size
     valid_st, valid_ed = train_ed + 1, train_ed + args.validation_size
@@ -68,9 +68,13 @@ def get_data(index):
         #img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
         img = process_frame(img)
         img = img / 255
-        train_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+        #train_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+        batch_img.append(img)
+        if len(batch_img) == 4:
+            train_img.append(np.array(batch_img, dtype=np.float32))
+            batch_img = []
     train_img = np.array(train_img, dtype=np.float32)
-    #train_img = np.squeeze(train_img, axis=4)
+    train_img = np.squeeze(train_img, axis=4)
     print(train_img.shape)
     for i in range(valid_st, valid_ed+1):
         if i % 1000 == 0:
@@ -79,9 +83,13 @@ def get_data(index):
         img = cv2.imread(path)
         img = process_frame(img)
         img = img / 255
-        valid_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+        batch_img.append(img)
+        if len(batch_img) == 4:
+            valid_img.append(np.array(batch_img, dtype=np.float32))
+            batch_img = []
+        #valid_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
     valid_img = np.array(valid_img, dtype=np.float32)
-    #valid_img = np.squeeze(valid_img, axis=4)
+    valid_img = np.squeeze(valid_img, axis=4)
     print(valid_img.shape)  
     return train_img, valid_img
 
