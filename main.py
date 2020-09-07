@@ -40,6 +40,8 @@ def get_arg():
                             default=0.001, help="learning rate of the optimizer")
     parser.add_argument("--gpu", type=int,
                             default=0, help="id of the gpu to run the program on")
+    parser.add_argument("--image-dir", type=str, 
+                            default="./image", help="path to store generated images")
     return parser.parse_args()
     
 def process_frame(frame, shape=(84, 84)):
@@ -68,11 +70,11 @@ def get_data(index):
         #img = cv2.resize(img, (104, 80), interpolation=cv2.INTER_NEAREST)
         img = process_frame(img)
         img = img / 255
-        #train_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
-        batch_img.append(img)
-        if len(batch_img) == 4:
-            train_img.append(np.array(batch_img, dtype=np.float32))
-            batch_img = []
+        train_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+        # batch_img.append(img)
+        # if len(batch_img) == 4:
+        #     train_img.append(np.array(batch_img, dtype=np.float32))
+        #     batch_img = []
     train_img = np.array(train_img, dtype=np.float32)
     train_img = np.squeeze(train_img, axis=4)
     print(train_img.shape)
@@ -83,11 +85,11 @@ def get_data(index):
         img = cv2.imread(path)
         img = process_frame(img)
         img = img / 255
-        batch_img.append(img)
-        if len(batch_img) == 4:
-            valid_img.append(np.array(batch_img, dtype=np.float32))
-            batch_img = []
-        #valid_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
+        # batch_img.append(img)
+        # if len(batch_img) == 4:
+        #     valid_img.append(np.array(batch_img, dtype=np.float32))
+        #     batch_img = []
+        valid_img.append(np.expand_dims(np.array(img, dtype=np.float32), axis=0))
     valid_img = np.array(valid_img, dtype=np.float32)
     valid_img = np.squeeze(valid_img, axis=4)
     print(valid_img.shape)  
@@ -146,8 +148,10 @@ def main():
                 latent = model_encoder(image)
                 img_recon = model_decoder(latent)
                 img_1 = img_recon[0][0]
+                img = image[0][0]
                 img_recon = F.interpolate(img_recon, size=image.shape[2:], mode='bilinear', align_corners=True) 
-                save_image(img_1, 'fake.png')
+                save_image(img_1, args.image_dir + '/fake' + str(i) + "_" + str(j) + ".png")
+                save_image(img, args.image_dir + '/real' + str(i) + "_" + str(j) + ".png")
                 image = Variable(torch.tensor(train_data[j: j + args.batch_size, :, :, :])).cuda(args.gpu)
                 loss = l2loss(img_recon, image)
                 validation_loss_value += loss.data.cpu().numpy() / args.batch_size

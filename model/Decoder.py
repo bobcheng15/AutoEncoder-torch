@@ -9,8 +9,8 @@ class Decoder(nn.Module):
         self.bn1   = nn.BatchNorm2d(64)
         self.dconv2 = nn.ConvTranspose2d(64, 32, 4, 2, padding=0)
         self.bn2   = nn.BatchNorm2d(32)
-        self.dconv3 = nn.ConvTranspose2d(32, 4, 8, 4, padding=0)
-        self.bn3   = nn.BatchNorm2d(4)
+        self.dconv3 = nn.ConvTranspose2d(32, 1, 8, 4, padding=0)
+        self.bn3   = nn.BatchNorm2d(1)
         self.relu  = nn.ReLU()
     
     def forward(self, x):
